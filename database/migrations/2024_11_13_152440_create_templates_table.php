@@ -13,10 +13,9 @@ return new class extends Migration
     {
         Schema::create('templates', function (Blueprint $table) {
             $table->id();
-            $table->varchar('title');
+            $table->string('title');
             $table->text('description');
-            $table->text('created_at');
-            $table->text('is_deleted');
+            $table->text('is_deleted')->default(false);;
             $table->timestamps();
         });
     }
