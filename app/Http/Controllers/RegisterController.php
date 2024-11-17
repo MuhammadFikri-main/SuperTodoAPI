@@ -42,12 +42,11 @@ class RegisterController extends Controller
                 ]);
             }
 
-            $user = new User;
-            // $user->token = Str::random(32) . time();
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->password = Hash::make($request->password);
-            $user->save();
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password), // Hashing the password
+            ]);
 
             if(!$user){
                 return response()->json([
@@ -59,13 +58,13 @@ class RegisterController extends Controller
             return response()->json([
                 'message' => "User registered successfully",
                 'user' => $user
-            ], 201);
+            ], 201); // Created
 
 
         } catch(Exception $e){
             return response()->json([
                 'message' => 'Internal Server Error'
-            ], 500);
+            ], 500); // Internal Server Error
         }
     }
 }
