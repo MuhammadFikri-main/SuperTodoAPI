@@ -7,16 +7,45 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Auth;
 
-class TaskController extends Controller
+class TaskController extends Controller implements HasMiddleware // implement HasMiddleware
 {
+    public static function middleware() //create middleware function
+    {
+        return [
+            new Middleware('auth:sanctum', except: ['index', 'show']) //authorize all routes except index and show
+        ];
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Task::all();
+        // return Task::all();
+        try{
+            $task = Task::where('user_id', $request->user()->id)->get();
+
+            if(!$task->isEmpty()){
+                return response()->json([
+                    'message' => "You do not have any task listed"
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'task' => $task
+            ], 200); // OK
+
+        }catch (Exception $e){
+            return response()->json([
+                'x-request-id' => $request->header('X-Request-Id'),
+                'error-message' => $e->getMessage(),
+            ], 500); // Internal serve error
+        }
     }
 
     /**
@@ -41,10 +70,6 @@ class TaskController extends Controller
 
             $title = $request->title;
             $description = $request->description;
-            $user_id = 1; //make it fillable in Task model
-
-            // Ensure the user is authenticated before proceeding
-            // $user = auth()->user();
 
             // if (!$user) {
             //     return response()->json([
@@ -55,10 +80,9 @@ class TaskController extends Controller
             // }
 
             // Create a new task and associate the authenticated user
-            $task = Task::create([
+            $task = $request->user()->task()->create([
                 'title' => $title,
-                'description' => $description,
-                'user_id' => $user_id // Associate the task with the authenticated user
+                'description' => $description
             ]);
 
             return response()->json([
@@ -88,6 +112,7 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
+        Gate::authorize('modify', $task);
         $validator = Validator::make($request->all(),[
             "title" => "required|string",
             "description" => "required"
@@ -144,6 +169,7 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
+        Gate::authorize('modify', $task);
         try {
             // Attempt to delete the task
             $task->delete();

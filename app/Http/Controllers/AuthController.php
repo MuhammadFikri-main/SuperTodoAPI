@@ -2,25 +2,82 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
-use Exception;
 use App\Models\User;
+use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
-class UserController extends Controller
+class AuthController extends Controller
 {
     /**
-     * Handle login request
-     * 
+     * Summary of register
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return void
      */
-    public function login(Request $request)
-    {
+    public function register(Request $request){
+        //validate register data
+        $validator = Validator::make($request->all(),[
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|min:6|confirmed'
+        ]);
+
+        if($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()]);
+        }
+
+        try{
+            //Check if email already exist
+            $user = User::where('email', $request->email)->first();
+
+            if($user){
+                return response()->json([
+                    'message' => "Email is already registered",
+                    'status' => 409,
+                    'code' => 'CONFLICT',
+                    'description' => 'conflict'
+                ]);
+            }
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password), // Hashing the password
+            ]);
+
+            if(!$user){
+                return response()->json([
+                    'message' => "Failed to create user.",
+                    'description' => "registration failed"
+                ]);
+            }
+
+            $token = $user->createToken($request->name);
+
+            return response()->json([
+                'message' => "User registered successfully",
+                'user' => $user,
+                'token' => $token->plainTextToken
+            ], 201); // Created
+
+
+        } catch(Exception $e){
+            return response()->json([
+                'message' => 'Internal Server Error'
+            ], 500); // Internal Server Error
+        }
+    }
+
+    /**
+     * Summary of login
+     * @param \Illuminate\Http\Request $request
+     * @return void
+     */
+    public function login(Request $request){
         $validator = Validator::make($request->all(), [
             'email' => "required|email|exists:users,email", // Make sure the correct DB name and column
-            'password' => "required|min:6"
+            'password' => "required|confirmed"
         ]);
 
         if ($validator->fails()) {
@@ -63,13 +120,11 @@ class UserController extends Controller
     }
 
     /**
-     * Handle logout request
-     * 
+     * Summary of logout
      * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return void
      */
-    public function logout(Request $request)
-    {
+    public function logout(Request $request){
         try {
             $user = $request->user();
 

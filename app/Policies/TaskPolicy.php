@@ -63,4 +63,11 @@ class TaskPolicy
     {
         //
     }
+
+    public function modify(User $user, Task $task): Response
+    {
+        return $user->id === $task->user_id
+            ?Response::allow()
+            :Response::deny("You not own this post");
+    }
 }
