@@ -13,7 +13,7 @@ class TemplateController extends Controller
      */
     public function index()
     {
-        //
+        return 'index';
     }
 
     /**
@@ -21,7 +21,7 @@ class TemplateController extends Controller
      */
     public function store(StoreTemplateRequest $request)
     {
-        //
+        return 'store';
     }
 
     /**
@@ -29,7 +29,7 @@ class TemplateController extends Controller
      */
     public function show(Template $template)
     {
-        //
+        return 'show';
     }
 
     /**
@@ -37,7 +37,7 @@ class TemplateController extends Controller
      */
     public function update(UpdateTemplateRequest $request, Template $template)
     {
-        //
+        return 'update';
     }
 
     /**
@@ -45,6 +45,6 @@ class TemplateController extends Controller
      */
     public function destroy(Template $template)
     {
-        //
+        return 'destroy';
     }
 }

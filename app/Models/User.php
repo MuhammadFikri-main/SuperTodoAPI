@@ -46,8 +46,15 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function tasks(){
+        return $this->hasMany(Task::class); // One user can have many tasks
+    }
 
-    public function task(){
-        return $this->hasMany(Task::class);
+    public function templates(){
+        return $this->hasMany(Template::class); // One user can have many templates (created by them)
+    }
+
+    public function usedTemplates(){
+        return $this->belongsToMany(Template::class, 'user_templates');
     }
 }

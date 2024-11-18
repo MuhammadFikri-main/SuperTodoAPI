@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+       
 
         User::factory()->create([
             'id' => 1,
@@ -23,6 +23,12 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('123456')
         ]);
 
+        User::factory(10)->create();
         Task::factory(10)->create();
+
+        $this->call([
+            TemplateSeeder::class,
+            UserTemplateSeeder::class
+        ]);
     }
 }

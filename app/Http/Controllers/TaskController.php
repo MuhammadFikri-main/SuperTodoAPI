@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller implements HasMiddleware // implement HasMiddleware
@@ -17,7 +18,7 @@ class TaskController extends Controller implements HasMiddleware // implement Ha
     public static function middleware() //create middleware function
     {
         return [
-            new Middleware('auth:sanctum', except: ['index', 'show']) //authorize all routes except index and show
+            new Middleware('auth:sanctum') //authorize all routes except index and show , except: ['index', 'show']
         ];
     }
     /**
@@ -25,19 +26,31 @@ class TaskController extends Controller implements HasMiddleware // implement Ha
      */
     public function index(Request $request)
     {
-        // return Task::all();
         try{
-            $task = Task::where('user_id', $request->user()->id)->get();
+            // Retrieve the authenticated user
+            $user = auth()->user();
 
-            if(!$task->isEmpty()){
+            // Log the user object
+            // Log::info('Authenticated user:', ['user' => $user]);
+
+            if (!$user) {
                 return response()->json([
-                    'message' => "You do not have any task listed"
+                    'message' => 'User not authenticated',
+                ], 401); // Unauthorized
+            }
+
+            // Fetch tasks belonging to the authenticated user
+            $tasks = Task::where('user_id', $user->id)->get();
+
+            if ($tasks->isEmpty()) {
+                return response()->json([
+                    'message' => "You do not have any task listed",
                 ]);
             }
 
             return response()->json([
                 'success' => true,
-                'task' => $task
+                'task' => $tasks
             ], 200); // OK
 
         }catch (Exception $e){
@@ -102,9 +115,36 @@ class TaskController extends Controller implements HasMiddleware // implement Ha
     /**
      * Display the specified resource.
      */
-    public function show(Task $task)
+    public function show(Request $request, Task $task)
     {
-        return $task;
+        try{
+
+            $user = auth()->user();
+
+            if (!$user) {
+                return response()->json([
+                    'message' => 'User not authenticated',
+                ], 401); // Unauthorized
+            }
+    
+            // Check if the authenticated user owns the task
+            if ($task->user_id !== $user->id) {
+                return response()->json([
+                    'message' => 'You do not have permission to view this task',
+                ], 403); // Forbidden
+            }
+
+            return response()->json([
+                'success' => true,
+                'task' => $task
+            ], 200); // OK
+
+        }catch (Exception $e){
+            return response()->json([
+                'x-request-id' => $request->header('X-Request-Id'),
+                'error-message' => $e->getMessage(),
+            ], 500); // Internal serve error
+        }
     }
 
     /**
@@ -130,24 +170,23 @@ class TaskController extends Controller implements HasMiddleware // implement Ha
 
             $title = $request->title;
             $description = $request->description;
-            $user_id = 1; //make it fillable in Task model
 
             // Ensure the user is authenticated before proceeding
-            // $user = auth()->user();
+            $user = auth()->user();
 
-            // if (!$user) {
-            //     return response()->json([
-            //         'code' => 'UNAUTHORIZED',
-            //         'description' => 'User not authenticated',
-            //         'message' => 'You must be logged in to create a task'
-            //     ], 401); // Unauthorized
-            // }
+            if (!$user) {
+                return response()->json([
+                    'code' => 'UNAUTHORIZED',
+                    'description' => 'User not authenticated',
+                    'message' => 'You must be logged in to create a task'
+                ], 401); // Unauthorized
+            }
 
             // Create a new task and associate the authenticated user
             $task->update([
                 'title' => $title,
                 'description' => $description,
-                'user_id' => $user_id // Associate the task with the authenticated user
+                'user_id' => $user->user_id // Associate the task with the authenticated user
             ]);
 
             return response()->json([

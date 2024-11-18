@@ -19,8 +19,11 @@ class Task extends Model
         'created_at',
         'is_deleted'
     ];
-
     public function user(){
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class); // A task belongs to one user
+    }
+
+    public function templates(){
+        return $this->belongsTo(Template::class); // A task can belongs to one template (optional)
     }
 }

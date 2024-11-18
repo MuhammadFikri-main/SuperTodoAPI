@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,10 @@ class TemplateFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'title' => $this->faker->word,
+            'description' => $this->faker->sentence,
+            'user_id' => User::factory(), // Assign the user who created the template
+            'is_public' => $this->faker->boolean, // Randomly set as public or private
         ];
     }
 }
