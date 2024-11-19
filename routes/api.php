@@ -3,10 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\RegisterController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TemplateController;
+use App\Http\Controllers\UserTemplateController;
 
 
 Route::controller(AuthController::class)->group( function () {
@@ -18,6 +17,13 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanct
 Route::apiResource('task', TaskController::class);
 Route::apiResource('template', TemplateController::class);
 
+#region User Templates
+Route::get('getAttachedTemplate', [UserTemplateController::class, 'index']);
+Route::post('attachTemplate', [UserTemplateController::class, 'attachTemplate']);
+Route::post('detachTemplate', [UserTemplateController::class, 'detachTemplate']);
+Route::post('attachMultipleTemplates', [UserTemplateController::class, 'attachMultipleTemplates']);
+#endregion
+
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
 // })->middleware('auth:sanctum');
@@ -25,16 +31,6 @@ Route::apiResource('template', TemplateController::class);
 // Route::get('/', function(){
 // 	return 'API';
 // });
-
-// Route::controller(RegisterController::class)->group(function(){
-//     Route::post('register', 'registration');
-// });
-
-// Route::controller(UserController::class)->group(function(){
-//     Route::post('login', 'login')->name('login');
-// });
-
-// Route::post('logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 
 // Route::middleware('auth:sanctum')->group( function () {
 

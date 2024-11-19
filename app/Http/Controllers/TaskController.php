@@ -93,7 +93,7 @@ class TaskController extends Controller implements HasMiddleware // implement Ha
             // }
 
             // Create a new task and associate the authenticated user
-            $task = $request->user()->task()->create([
+            $task = $request->user()->tasks()->create([
                 'title' => $title,
                 'description' => $description
             ]);

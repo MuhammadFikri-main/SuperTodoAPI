@@ -63,4 +63,11 @@ class TemplatePolicy
     {
         //
     }
+
+    public function modify(User $user, Template $template): Response
+    {
+        return $user->id === $template->user_id
+            ?Response::allow()
+            :Response::deny("You not own this template");
+    }
 }
