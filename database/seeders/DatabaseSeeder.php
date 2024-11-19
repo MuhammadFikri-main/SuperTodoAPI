@@ -14,21 +14,24 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-       
-
-        User::factory()->create([
+       // Create a specific test user
+       User::factory()->create([
             'id' => 1,
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => bcrypt('123456')
         ]);
 
-        User::factory(10)->create();
+        // Create additional users
+        User::factory(5)->create();
+
+        // Call TemplateSeeder before creating tasks
+        $this->call(TemplateSeeder::class);
+
+        // Create tasks (ensure templates exist first)
         Task::factory(10)->create();
 
-        $this->call([
-            TemplateSeeder::class,
-            UserTemplateSeeder::class
-        ]);
+        // Seed user-template relationships
+        $this->call(UserTemplateSeeder::class);
     }
 }

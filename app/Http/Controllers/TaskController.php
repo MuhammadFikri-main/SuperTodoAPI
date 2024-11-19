@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Template;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
@@ -66,9 +67,11 @@ class TaskController extends Controller implements HasMiddleware // implement Ha
      */
     public function store(Request $request)
     {
+        // dd($request->all());
         $validator = Validator::make($request->all(),[
             "title" => "required|string",
-            "description" => "required"
+            "description" => "required|string",
+            "template_id" => "nullable|exists:templates,id", // Validate template_id if provided
         ]);
 
         if($validator->fails()){
@@ -83,19 +86,35 @@ class TaskController extends Controller implements HasMiddleware // implement Ha
 
             $title = $request->title;
             $description = $request->description;
+            $templateId = $request->template_id; // Optional template ID
 
-            // if (!$user) {
-            //     return response()->json([
-            //         'code' => 'UNAUTHORIZED',
-            //         'description' => 'User not authenticated',
-            //         'message' => 'You must be logged in to create a task'
-            //     ], 401); // Unauthorized
-            // }
+            // Debugging input data
+            // logger()->info('Task creation data', [
+            //     'user_id' => $request->user()->id,
+            //     'title' => $title,
+            //     'description' => $description,
+            //     'template_id' => $templateId,
+            // ]);
+
+            // Check if template_id is provided and belongs to the authenticated user
+            if ($templateId) {
+                $template = Template::find($templateId);
+
+                // Ensure the authenticated user is the owner of the template
+                if (!$template || $template->user_id !== $request->user()->id) {
+                    return response()->json([
+                        'code' => 'FORBIDDEN',
+                        'description' => 'You can only add tasks to your own templates',
+                        'message' => 'Template does not belong to you'
+                    ], 403);
+                }
+            }
 
             // Create a new task and associate the authenticated user
             $task = $request->user()->tasks()->create([
                 'title' => $title,
-                'description' => $description
+                'description' => $description,
+                'template_id' => $templateId // can be null
             ]);
 
             return response()->json([

@@ -17,7 +17,8 @@ class Task extends Model
         'priority',
         'dateline',
         'created_at',
-        'is_deleted'
+        'is_deleted',
+        'template_id'
     ];
     public function user(){
         return $this->belongsTo(User::class); // A task belongs to one user

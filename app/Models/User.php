@@ -54,7 +54,8 @@ class User extends Authenticatable
         return $this->hasMany(Template::class); // One user can have many templates (created by them)
     }
 
-    public function usedTemplates(){
-        return $this->belongsToMany(Template::class, 'user_templates');
+    public function sharedTemplates()
+    {
+        return $this->belongsToMany(Template::class, 'user_templates'); // User can have many templates (created by other)
     }
 }

@@ -17,11 +17,9 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanct
 Route::apiResource('task', TaskController::class);
 Route::apiResource('template', TemplateController::class);
 
-#region User Templates
-Route::get('getAttachedTemplate', [UserTemplateController::class, 'index']);
-Route::post('attachTemplate', [UserTemplateController::class, 'attachTemplate']);
-Route::post('detachTemplate', [UserTemplateController::class, 'detachTemplate']);
-Route::post('attachMultipleTemplates', [UserTemplateController::class, 'attachMultipleTemplates']);
+#region Templates
+Route::get('getListOfTemplates', [TemplateController::class, 'getListOfTemplates']);
+Route::post('useTemplate', [TemplateController::class, 'useTemplate']);
 #endregion
 
 // Route::get('/user', function (Request $request) {

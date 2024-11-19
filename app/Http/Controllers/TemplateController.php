@@ -81,14 +81,6 @@ class TemplateController extends Controller implements HasMiddleware // implemen
             $title = $request->title;
             $description = $request->description;
 
-            // if (!$user) {
-            //     return response()->json([
-            //         'code' => 'UNAUTHORIZED',
-            //         'description' => 'User not authenticated',
-            //         'message' => 'You must be logged in to create a task'
-            //     ], 401); // Unauthorized
-            // }
-
             // Create a new task and associate the authenticated user
             $template = $request->user()->templates()->create([
                 'title' => $title,
@@ -221,5 +213,105 @@ class TemplateController extends Controller implements HasMiddleware // implemen
                 'error-message' => $e->getMessage(),
             ], 500); // Internal server error
         }
+    }
+
+    /**
+     * List all of templates
+     */
+    public function getListOfTemplates(Request $request){
+        try{
+            // Retrieve the authenticated user
+            $user = auth()->user();
+
+            // Log the user object
+            // Log::info('Authenticated user:', ['user' => $user]);
+
+            if (!$user) {
+                return response()->json([
+                    'message' => 'User not authenticated',
+                ], 401); // Unauthorized
+            }
+
+            // Fetch template that is_public
+            $templates = Template::where('is_public', true)
+            ->with('tasks')->get();
+
+            if ($templates->isEmpty()) {
+                return response()->json([
+                    'message' => "There is no public templates available",
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'template' => $templates
+            ], 200); // OK
+
+        }catch (Exception $e){
+            return response()->json([
+                'x-request-id' => $request->header('X-Request-Id'),
+                'error-message' => $e->getMessage(),
+            ], 500); // Internal serve error
+        }
+    }
+
+    /**
+     * Use other template
+     * @param \Illuminate\Http\Request $request
+     * @param mixed $templateId
+     * @return mixed|\Illuminate\Http\JsonResponse
+     */
+    public function useTemplate(Request $request)
+    {
+        try{
+            $templateId = $request->template_id;
+
+            // Debugging input data
+            logger()->info('Task creation data', [
+                'user_id' => $request->user()->id,
+                'template_id' => $templateId
+            ]);
+
+            $template = Template::where('id', $templateId)
+                    ->where('is_public', true)
+                    ->with('tasks')
+                    ->firstOrFail();
+
+            $user = auth()->user();
+
+            // Check if the user has already linked to the template in `user_template`
+            if ($user->sharedTemplates->contains($templateId)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You have already used this template.',
+                ], 400); // Bad Request
+            }
+
+            // Link the template to the user via the pivot table
+            $user->sharedTemplates()->attach($templateId);
+
+            // Add template tasks to the user's task list
+            foreach ($template->tasks as $task) {
+                $user->tasks()->create([
+                    'template_id' => $task->template_id,
+                    'title' => $task->title,
+                    'description' => $task->description,
+                    'status' => 'pending',
+                    'priority' => $task->priority,
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Template tasks added to your task list',
+            ]);
+
+        }catch(Exception $e){
+            return response()->json([
+                'x-request-id' => $request->header('X-Request-Id'),
+                'error-message' => $e->getMessage(),
+            ], 500); // Internal serve error
+        }
+        
     }
 }

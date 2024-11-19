@@ -20,7 +20,7 @@ class TemplateFactory extends Factory
         return [
             'title' => $this->faker->word,
             'description' => $this->faker->sentence,
-            'user_id' => User::factory(), // Assign the user who created the template
+            'user_id' => User::inRandomOrder()->first()->id, // Assign the user who created the template
             'is_public' => $this->faker->boolean, // Randomly set as public or private
         ];
     }

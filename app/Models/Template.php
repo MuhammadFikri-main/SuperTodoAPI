@@ -28,4 +28,9 @@ class Template extends Model
     public function tasks(){
         return $this->hasMany(Task::class); // A template can have many tasks associated with it
     }
+
+    public function sharedWith()
+    {
+        return $this->belongsToMany(User::class, 'user_template'); // A template that shared can be seen by many user
+    }
 }
