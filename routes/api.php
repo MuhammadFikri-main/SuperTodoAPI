@@ -14,13 +14,20 @@ Route::controller(AuthController::class)->group( function () {
 });
 
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::apiResource('task', TaskController::class);
+
+#region Task
+Route::get('getListOfTasks', [TaskController::class, 'getListOfTasks']);
+Route::post('addTask', [TaskController::class, 'addTask']);
+Route::put('updateTask', [TaskController::class, 'updateTask']);
+Route::delete('/deleteTask/{id}', [TaskController::class, 'deleteTask']);
+#endregion Task
+
 Route::apiResource('template', TemplateController::class);
 
 #region Templates
 Route::get('getListOfTemplates', [TemplateController::class, 'getListOfTemplates']);
 Route::post('useTemplate', [TemplateController::class, 'useTemplate']);
-#endregion
+#endregion Templates
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
