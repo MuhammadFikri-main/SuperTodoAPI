@@ -234,7 +234,9 @@ class TemplateController extends Controller implements HasMiddleware // implemen
 
             // Fetch template that is_public
             $templates = Template::where('is_public', true)
-            ->with('tasks')->get();
+                    ->with(['tasks', 'user:id,name'])
+                    ->withCount('tasks')
+                    ->get();
 
             if ($templates->isEmpty()) {
                 return response()->json([

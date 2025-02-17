@@ -22,7 +22,7 @@ Route::put('updateTask', [TaskController::class, 'updateTask']);
 Route::delete('/deleteTask/{id}', [TaskController::class, 'deleteTask']);
 #endregion Task
 
-Route::apiResource('template', TemplateController::class);
+// Route::apiResource('template', TemplateController::class);
 
 #region Templates
 Route::get('getListOfTemplates', [TemplateController::class, 'getListOfTemplates']);
